@@ -12,6 +12,9 @@ class ProjectAdmin(admin.ModelAdmin):
 class IssueAdmin(admin.ModelAdmin):
     pass
 @admin.register(UserIssue)
-class UserIssue(admin.ModelAdmin):
+class UserIssueAdmin(admin.ModelAdmin):
+    pass
+@admin.register(Labels)
+class LablesAdmin(admin.ModelAdmin):
     pass
 

@@ -25,8 +25,9 @@ def create_project(request):
 def create_issue(request):
     try:
         obj = Project.objects.get(project_id=request.POST.get('project_id'))
-        a = Issue(issue = obj, title=request.POST.get('title'),label=request.POST.get('labels'),assignee=request.POST.get('assignee'),type=request.POST.get('type'),sprint=request.POST.get('sprint'),status=request.POST.get('status'))
+        a = Issue(issue = obj, title=request.POST.get('title'),assignee=request.POST.get('assignee'),type=request.POST.get('type'),sprint=request.POST.get('sprint'),status=request.POST.get('status'))
         a.save()
+        Labels(issue=a,label=request.POST.get('labels')).save()
         return HttpResponse(json.dumps({"status": "200","Issue":"created","IssueId":a.id}), content_type='application/json')
 
     except Exception as e:
@@ -45,7 +46,10 @@ def get_project_details(request):
     obj = Project.objects.get(project_id=project_id)
     issues = []
     for i in Issue.objects.filter(issue=obj).all():
-        issues.append({"Issue Id":i.id,"Title":i.title,"Label":i.label,"Type":i.type,"Sprint":i.sprint,"Status":i.status,"Assignee":i.assignee,"Date Created":i.date_created.strftime("%m/%d/%Y, %H:%M:%S")})
+        labels = []
+        for j in Labels.objects.filter(issue=i).all():
+            labels.append(j.label)
+        issues.append({"Issue Id":i.id,"Title":i.title,"Label":labels,"Type":i.type,"Sprint":i.sprint,"Status":i.status,"Assignee":i.assignee,"Date Created":i.date_created.strftime("%m/%d/%Y, %H:%M:%S")})
     
     return HttpResponse(json.dumps({"status":"200","projectId":project_id,"projectName":obj.name,"Issues":issues}), content_type='application/json')
 
@@ -56,7 +60,10 @@ def get_all_issue_of_project(request):
     obj = Project.objects.get(project_id=project_id)
     issues = []
     for i in Paginator(Issue.objects.filter(issue=obj).all(), limit).page(offset):
-        issues.append({"Issue Id":i.id,"Title":i.title,"Label":i.label,"Type":i.type,"Sprint":i.sprint,"Status":i.status,"Assignee":i.assignee,"Date Created":i.date_created.strftime("%m/%d/%Y, %H:%M:%S")})
+        labels = []
+        for j in Labels.objects.filter(issue=i).all():
+            labels.append(j.label)
+        issues.append({"Issue Id":i.id,"Title":i.title,"Labels":labels,"Type":i.type,"Sprint":i.sprint,"Status":i.status,"Assignee":i.assignee,"Date Created":i.date_created.strftime("%m/%d/%Y, %H:%M:%S")})
     
     return HttpResponse(json.dumps({"status":"200","Issues":issues}), content_type='application/json')
 
@@ -77,5 +84,14 @@ def get_issue_assigned_to_user(request):
         for i in UserIssue.objects.filter(user_rel=Users.objects.get(user_id=user_id)).all().order_by("-date_assigned"):
             issues.append({"Issue Id":i.id,"Date Created":i.date_assigned.strftime("%m/%d/%Y, %H:%M:%S")})
         return HttpResponse(json.dumps({"userId":user_id,"issues":issues}), content_type='application/json')
+    except:
+        return HttpResponse(json.dumps({"status": "500"}), content_type='application/json')
+        
+def add_label_to_issue(request):
+    issue_id = request.POST.get('issue_id')
+    label = request.POST.get('label')
+    try:
+        Labels(issue=Issue.objects.get(id=issue_id), label=label).save()
+        return HttpResponse(json.dumps({"status":"200","message":"Label added successfully"}), content_type='application/json')
     except:
         return HttpResponse(json.dumps({"status": "500"}), content_type='application/json')
