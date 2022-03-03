@@ -12,5 +12,6 @@ urlpatterns = [
     path('assignIssue/', views.assign_issue, name='assign_issue'), 
     path('getIssueAssignedToUser/', views.get_issue_assigned_to_user, name='get_issue_assigned_to_user'), 
     path('addLabel/', views.add_label_to_issue, name='add_label_to_issue'), 
+    path('search/', views.search_issues, name='search_issues'), 
 
 ]

@@ -49,7 +49,7 @@ def get_project_details(request):
         labels = []
         for j in Labels.objects.filter(issue=i).all():
             labels.append(j.label)
-        issues.append({"Issue Id":i.id,"Title":i.title,"Label":labels,"Type":i.type,"Sprint":i.sprint,"Status":i.status,"Assignee":i.assignee,"Date Created":i.date_created.strftime("%m/%d/%Y, %H:%M:%S")})
+        issues.append({"Issue Id":i.id,"Title":i.title,"Labels":labels,"Type":i.type,"Sprint":i.sprint,"Status":i.status,"Assignee":i.assignee,"Date Created":i.date_created.strftime("%m/%d/%Y, %H:%M:%S")})
     
     return HttpResponse(json.dumps({"status":"200","projectId":project_id,"projectName":obj.name,"Issues":issues}), content_type='application/json')
 
@@ -86,7 +86,7 @@ def get_issue_assigned_to_user(request):
         return HttpResponse(json.dumps({"userId":user_id,"issues":issues}), content_type='application/json')
     except:
         return HttpResponse(json.dumps({"status": "500"}), content_type='application/json')
-        
+
 def add_label_to_issue(request):
     issue_id = request.POST.get('issue_id')
     label = request.POST.get('label')
@@ -94,4 +94,36 @@ def add_label_to_issue(request):
         Labels(issue=Issue.objects.get(id=issue_id), label=label).save()
         return HttpResponse(json.dumps({"status":"200","message":"Label added successfully"}), content_type='application/json')
     except:
+        return HttpResponse(json.dumps({"status": "500"}), content_type='application/json')
+
+def search_issues(request):
+    search_param = request.POST.get('search_param')
+    results = []
+    try:
+        for i in Project.objects.filter(name__icontains=search_param).all():
+            results.append({"projectName":i.name,"projectId":i.id})
+
+        for i in Issue.objects.filter(title__icontains=search_param).all():
+            results.append({"issueTitle":i.title,"issueId":i.id})
+
+        for i in Issue.objects.filter(assignee__icontains=search_param).all():
+            results.append({"issueAssignee":i.assignee,"issueId":i.id})
+
+        for i in Issue.objects.filter(sprint__icontains=search_param).all():
+            results.append({"issueSprint":i.sprint,"issueId":i.id})
+    
+        for i in Issue.objects.filter(type__icontains=search_param).all():
+            results.append({"issueType":i.type,"issueId":i.id})
+
+
+        for i in Issue.objects.filter(status__icontains=search_param).all():
+            results.append({"issueStatus":i.status,"issueId":i.id})
+        
+        for i in Labels.objects.filter(label__icontains=search_param).all():
+            results.append({"issueLabel":i.label,"issueId":i.issue.id})
+  
+    
+        return HttpResponse(json.dumps({"status":"200","result":results}), content_type='application/json')
+    except Exception as e:
+        print(e)
         return HttpResponse(json.dumps({"status": "500"}), content_type='application/json')
