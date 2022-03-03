@@ -9,5 +9,7 @@ urlpatterns = [
     path('getAllProject/', views.get_all_projects, name='Get all project'), 
     path('getProjectDetails/', views.get_project_details, name='get_project_details'), 
     path('getAllIssueOfProject/', views.get_all_issue_of_project, name='get_all_issue_of_project'), 
+    path('assignIssue/', views.assign_issue, name='assign_issue'), 
+    path('getIssueAssignedToUser/', views.get_issue_assigned_to_user, name='get_issue_assigned_to_user'), 
 
 ]
